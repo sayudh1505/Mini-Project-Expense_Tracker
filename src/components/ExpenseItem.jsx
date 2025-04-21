@@ -1,5 +1,6 @@
 // rrd imports
 import { Link, useFetcher } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 // library import
 import { TrashIcon } from "@heroicons/react/24/solid";
@@ -13,19 +14,34 @@ import {
 
 const ExpenseItem = ({ expense, showBudget }) => {
   const fetcher = useFetcher();
+  const [budget, setBudget] = useState(null);
 
-  const budget = getAllMatchingItems({
-    category: "budgets",
-    key: "id",
-    value: expense.budgetId,
-  })[0];
+  useEffect(() => {
+    const loadBudget = async () => {
+      try {
+        if (showBudget) {
+          const budgets = await getAllMatchingItems({
+            category: "budgets",
+            key: "id",
+            value: expense.budgetId,
+          });
+          if (budgets.length > 0) {
+            setBudget(budgets[0]);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading budget:", error);
+      }
+    };
+    loadBudget();
+  }, [expense.budgetId, showBudget]);
 
   return (
     <>
       <td>{expense.name}</td>
       <td>{formatCurrency(expense.amount)}</td>
       <td>{formatDateToLocaleString(expense.createdAt)}</td>
-      {showBudget && (
+      {showBudget && budget && (
         <td>
           <Link
             to={`/budget/${budget.id}`}
@@ -53,4 +69,5 @@ const ExpenseItem = ({ expense, showBudget }) => {
     </>
   );
 };
+
 export default ExpenseItem;

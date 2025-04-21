@@ -1,33 +1,27 @@
 // rrd imports
-import { Outlet, useLoaderData } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 
 // assets
 import wave from "../assets/wave.svg";
 
 // components
 import Nav from "../components/Nav";
-import { fetchData } from "../helpers";
 
-//  helper functions
-
-
-// loader
-export function mainLoader() {
-  const userName = fetchData("userName");
-  return { userName }
-}
+// context
+import { useAuth } from "../context/AuthContext";
 
 const Main = () => {
-  const { userName } = useLoaderData()
+  const { currentUser } = useAuth();
 
   return (
     <div className="layout">
-      <Nav userName={userName} />
+      <Nav user={currentUser} />
       <main>
         <Outlet />
       </main>
       <img src={wave} alt="" />
     </div>
-  )
-}
-export default Main
+  );
+};
+
+export default Main;

@@ -14,23 +14,30 @@ import { createExpense, deleteItem, getAllMatchingItems } from "../helpers";
 
 // loader
 export async function budgetLoader({ params }) {
-  const budget = await getAllMatchingItems({
-    category: "budgets",
-    key: "id",
-    value: params.id,
-  })[0];
+  try {
+    const budgets = await getAllMatchingItems({
+      category: "budgets",
+      key: "id",
+      value: params.id,
+    });
 
-  const expenses = await getAllMatchingItems({
-    category: "expenses",
-    key: "budgetId",
-    value: params.id,
-  });
+    const budget = budgets[0];
+    
+    if (!budget) {
+      throw new Error("The budget you're trying to find doesn't exist");
+    }
 
-  if (!budget) {
-    throw new Error("The budget you’re trying to find doesn’t exist");
+    const expenses = await getAllMatchingItems({
+      category: "expenses",
+      key: "budgetId",
+      value: params.id,
+    });
+
+    return { budget, expenses };
+  } catch (error) {
+    console.error("Error loading budget data:", error);
+    throw new Error("There was a problem loading the budget. Please try again.");
   }
-
-  return { budget, expenses };
 }
 
 // action
@@ -38,29 +45,26 @@ export async function budgetAction({ request }) {
   const data = await request.formData();
   const { _action, ...values } = Object.fromEntries(data);
 
-  if (_action === "createExpense") {
-    try {
-      createExpense({
+  try {
+    if (_action === "createExpense") {
+      const expense = await createExpense({
         name: values.newExpense,
         amount: values.newExpenseAmount,
         budgetId: values.newExpenseBudget,
       });
-      return toast.success(`Expense ${values.newExpense} created!`);
-    } catch (e) {
-      throw new Error("There was a problem creating your expense.");
+      return toast.success(`Expense "${values.newExpense}" created!`);
     }
-  }
 
-  if (_action === "deleteExpense") {
-    try {
-      deleteItem({
+    if (_action === "deleteExpense") {
+      await deleteItem({
         key: "expenses",
         id: values.expenseId,
       });
       return toast.success("Expense deleted!");
-    } catch (e) {
-      throw new Error("There was a problem deleting your expense.");
     }
+  } catch (error) {
+    console.error("Error:", error);
+    throw new Error(error.message || "There was a problem with the action.");
   }
 }
 
@@ -92,4 +96,5 @@ const BudgetPage = () => {
     </div>
   );
 };
+
 export default BudgetPage;

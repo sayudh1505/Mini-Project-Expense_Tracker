@@ -5,7 +5,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 // Layouts
-import Main, { mainLoader } from "./layouts/Main";
+import Main from "./layouts/Main";
 
 // Actions
 import { logoutAction } from "./actions/logout";
@@ -19,24 +19,40 @@ import ExpensesPage, {
   expensesAction,
   expensesLoader,
 } from "./pages/ExpensesPage";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import Intro from "./components/Intro";
+
+// Context
+import { AuthProvider } from "./context/AuthContext";
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <Main />,
-    loader: mainLoader,
     errorElement: <Error />,
     children: [
       {
         index: true,
-        element: <Dashboard />,
+        element: <Intro />,
+      },
+      {
+        path: "dashboard",
+        element: (
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        ),
         loader: dashboardLoader,
         action: dashboardAction,
         errorElement: <Error />,
       },
       {
         path: "budget/:id",
-        element: <BudgetPage />,
+        element: (
+          <ProtectedRoute>
+            <BudgetPage />
+          </ProtectedRoute>
+        ),
         loader: budgetLoader,
         action: budgetAction,
         errorElement: <Error />,
@@ -49,7 +65,11 @@ const router = createBrowserRouter([
       },
       {
         path: "expenses",
-        element: <ExpensesPage />,
+        element: (
+          <ProtectedRoute>
+            <ExpensesPage />
+          </ProtectedRoute>
+        ),
         loader: expensesLoader,
         action: expensesAction,
         errorElement: <Error />,
@@ -64,10 +84,12 @@ const router = createBrowserRouter([
 
 function App() {
   return (
-    <div className="App">
-      <RouterProvider router={router} />
-      <ToastContainer />
-    </div>
+    <AuthProvider>
+      <div className="App">
+        <RouterProvider router={router} />
+        <ToastContainer />
+      </div>
+    </AuthProvider>
   );
 }
 

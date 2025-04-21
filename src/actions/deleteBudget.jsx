@@ -7,29 +7,33 @@ import { toast } from "react-toastify";
 // helpers
 import { deleteItem, getAllMatchingItems } from "../helpers";
 
-export function deleteBudget({ params }) {
+export async function deleteBudget({ params }) {
   try {
-    deleteItem({
-      key: "budgets",
-      id: params.id,
-    });
-
-    const associatedExpenses = getAllMatchingItems({
+    // First, get all associated expenses
+    const expenses = await getAllMatchingItems({
       category: "expenses",
       key: "budgetId",
       value: params.id,
     });
 
-    associatedExpenses.forEach((expense) => {
-      deleteItem({
+    // Delete all associated expenses first
+    for (const expense of expenses) {
+      await deleteItem({
         key: "expenses",
         id: expense.id,
       });
+    }
+
+    // Then delete the budget
+    await deleteItem({
+      key: "budgets",
+      id: params.id,
     });
 
-    toast.success("Budget deleted successfully!");
-  } catch (e) {
-    throw new Error("There was a problem deleting your budget.");
+    toast.success("Budget and associated expenses deleted successfully!");
+  } catch (error) {
+    console.error("Error deleting budget:", error);
+    throw new Error("There was a problem deleting your budget and its expenses.");
   }
   return redirect("/");
 }

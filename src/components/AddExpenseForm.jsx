@@ -26,9 +26,11 @@ const AddExpenseForm = ({ budgets }) => {
 
   return (
     <div className="form-wrapper">
-      <h2 className="h3">Add New{" "}<span className="accent">
-        {budgets.length === 1 && `${budgets.map((budg) => budg.name)}`}
-      </span>{" "}
+      <h2 className="h3">
+        Add New{" "}
+        <span className="accent">
+          {budgets.length === 1 && budgets[0].name}
+        </span>{" "}
         Expense
       </h2>
       <fetcher.Form
@@ -64,29 +66,32 @@ const AddExpenseForm = ({ budgets }) => {
         <div className="grid-xs" hidden={budgets.length === 1}>
           <label htmlFor="newExpenseBudget">Budget Category</label>
           <select name="newExpenseBudget" id="newExpenseBudget" required>
-            {
-              budgets
-                .sort((a, b) => a.createdAt - b.createdAt)
-                .map((budget) => {
-                  return (
-                    <option key={budget.id} value={budget.id}>
-                      {budget.name}
-                    </option>
-                  )
-                })
-            }
+            {budgets
+              .sort((a, b) => a.createdAt - b.createdAt)
+              .map((budget) => (
+                <option key={budget.id} value={budget.id}>
+                  {budget.name}
+                </option>
+              ))}
           </select>
         </div>
+        {budgets.length === 1 && (
+          <input
+            type="hidden"
+            name="newExpenseBudget"
+            value={budgets[0].id}
+          />
+        )}
         <input type="hidden" name="_action" value="createExpense" />
         <button type="submit" className="btn btn--dark" disabled={isSubmitting}>
-          {
-            isSubmitting ? <span>Submitting…</span> : (
-              <>
-                <span>Add Expense</span>
-                <PlusCircleIcon width={20} />
-              </>
-            )
-          }
+          {isSubmitting ? (
+            <span>Submitting…</span>
+          ) : (
+            <>
+              <span>Add Expense</span>
+              <PlusCircleIcon width={20} />
+            </>
+          )}
         </button>
       </fetcher.Form>
     </div>

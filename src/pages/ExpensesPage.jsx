@@ -12,8 +12,13 @@ import { deleteItem, fetchData } from "../helpers";
 
 // loader
 export async function expensesLoader() {
-  const expenses = fetchData("expenses");
-  return { expenses };
+  try {
+    const expenses = await fetchData("expenses");
+    return { expenses };
+  } catch (error) {
+    console.error("Error loading expenses:", error);
+    throw error;
+  }
 }
 
 // action
@@ -23,7 +28,7 @@ export async function expensesAction({ request }) {
 
   if (_action === "deleteExpense") {
     try {
-      deleteItem({
+      await deleteItem({
         key: "expenses",
         id: values.expenseId,
       });
